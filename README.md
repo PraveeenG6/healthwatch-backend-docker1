@@ -251,6 +251,28 @@ The frontend expects the backend at:
 http://localhost:8081
 ```
 
+## Running With Docker
+
+From the project root (`healthmonitorcopy`), build and start MongoDB, the backend, and the frontend:
+
+```bat
+docker compose up --build
+```
+
+Open the app at:
+
+```text
+http://localhost:3001
+```
+
+The backend health check endpoint is available at:
+
+```text
+http://localhost:8081/api/ping
+```
+
+MongoDB data is stored in the `mongo-data` Docker volume. To pass a Gemini key into the backend, set `GEMINI_API_KEY` in your shell before running Docker Compose.
+
 ## Deploying
 
 ### Railway Backend
