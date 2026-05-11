@@ -8,8 +8,8 @@ The app seeds two MongoDB users when it starts:
 
 | Role | User ID | Password |
 | --- | --- | --- |
-| PATIENT | `patient1` | `patient123` |
-| DOCTOR | `doctor1` | `doctor123` |
+| PATIENT | `1BM24EC407` | `miniproject` |
+| DOCTOR | `1BM24EC403` | `miniproject` |
 
 The frontend sends normal HTTP Basic authentication:
 
@@ -62,8 +62,8 @@ Request:
 
 ```json
 {
-  "userId": "patient1",
-  "password": "patient123"
+  "userId": "1BM24EC407",
+  "password": "miniproject"
 }
 ```
 
@@ -71,8 +71,8 @@ Response:
 
 ```json
 {
-  "userId": "patient1",
-  "name": "Ravi Shankar",
+  "userId": "1BM24EC407",
+  "name": "Ganesh NV",
   "role": "PATIENT",
   "patientId": "662f..."
 }
@@ -152,8 +152,8 @@ Response:
 {
   "id": "6630...",
   "patientId": "662f...",
-  "doctorId": "doctor1",
-  "doctorName": "Dr. Meera Patel",
+  "doctorId": "1BM24EC403",
+  "doctorName": "Dr Kiran M kalakeri",
   "consultationTime": "2026-05-01T08:30:00Z",
   "suggestions": "Drink water, rest, and recheck SpO2 after 30 minutes."
 }
@@ -205,13 +205,14 @@ Outputs:
 - `fallProbability`
 - `aiRiskLevel`: `NORMAL`, `CAUTION`, or `EMERGENCY`
 
-The bundled CSV is a small starter dataset so the project runs out of the box. Replace it with a larger labelled fall dataset for better accuracy.
+The bundled CSV contains 300+ labelled demo rows so the project runs out of the box. Replace it with a real-world labelled fall dataset for stronger production accuracy.
 
 ## Gemini Chatbot Setup
 
 Set your API key before starting Spring Boot. For local development, create `healthmonitor/.env`:
 
 ```text
+MONGODB_URI=mongodb://localhost:27017/HealthWatch
 GEMINI_API_KEY=your_api_key_here
 ```
 
@@ -249,3 +250,42 @@ The frontend expects the backend at:
 ```text
 http://localhost:8081
 ```
+
+## Deploying
+
+### Railway Backend
+
+Deploy the `healthmonitor` folder as the Railway service root. The project includes `railway.toml`, which starts the packaged Spring Boot jar and checks `/api/ping`.
+
+Set these Railway variables:
+
+```text
+MONGODB_URI=your_mongodb_connection_string
+GEMINI_API_KEY=your_gemini_key_optional
+```
+
+Railway provides `PORT` automatically, and `application.properties` reads it with `server.port=${PORT:8081}`.
+
+After deployment, open:
+
+```text
+https://your-railway-domain/api/ping
+```
+
+Expected response:
+
+```json
+{"service":"healthwatch-backend","status":"ok"}
+```
+
+### Vercel Frontend
+
+Deploy the `frontend` folder as the Vercel project root. It is a static HTML/CSS/JS site and includes `vercel.json`.
+
+After Railway gives you a public backend URL, open the Vercel site once with:
+
+```text
+https://your-vercel-domain?api=https://your-railway-domain
+```
+
+The frontend stores that backend URL in browser local storage. If you need to change it later, open the same Vercel URL again with a new `?api=...` value.

@@ -24,6 +24,14 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private static final String DEMO_DEVICE_ID = "ESP32-DEMO01";
+    private static final String PATIENT_USER_ID = "1BM24EC407";
+    private static final String LEGACY_PATIENT_USER_ID = "patient1";
+    private static final String PATIENT_PASSWORD = "miniproject";
+    private static final String PATIENT_NAME = "Ganesh NV";
+    private static final String DOCTOR_USER_ID = "1BM24EC403";
+    private static final String LEGACY_DOCTOR_USER_ID = "doctor1";
+    private static final String DOCTOR_PASSWORD = "miniproject";
+    private static final String DOCTOR_NAME = "Dr Kiran M kalakeri";
 
     private final PatientRepository patientRepository;
     private final AppUserRepository appUserRepository;
@@ -35,12 +43,14 @@ public class DataInitializer implements CommandLineRunner {
         try {
             Patient demoPatient = patientRepository.findByDeviceId(DEMO_DEVICE_ID)
                     .orElseGet(this::createDemoPatient);
+            demoPatient = updateDemoPatient(demoPatient);
 
             seedUsers(demoPatient);
             seedReadings(demoPatient.getId());
             seedConsultation(demoPatient.getId());
 
-            log.info("Demo login users: patient1/patient123 and doctor1/doctor123");
+            log.info("Demo login users: {}/{} and {}/{}",
+                    PATIENT_USER_ID, PATIENT_PASSWORD, DOCTOR_USER_ID, DOCTOR_PASSWORD);
         } catch (Exception e) {
             log.warn("DataInitializer: Could not initialize demo data - MongoDB may be unavailable. Error: {}", e.getMessage());
         }
@@ -48,14 +58,14 @@ public class DataInitializer implements CommandLineRunner {
 
     private Patient createDemoPatient() {
         Patient patient = Patient.builder()
-                .name("Ravi Shankar")
+                .name(PATIENT_NAME)
                 .email("patient@healthmonitor.com")
                 .phone("+91 9876543210")
                 .dateOfBirth(LocalDate.of(2001, 5, 15))
                 .gender("Male")
                 .bloodType("O+")
                 .medicalHistory("No known allergies")
-                .assignedDoctorId("doctor1")
+                .assignedDoctorId(DOCTOR_USER_ID)
                 .deviceId(DEMO_DEVICE_ID)
                 .status("ACTIVE")
                 .createdAt(Instant.now())
@@ -64,27 +74,45 @@ public class DataInitializer implements CommandLineRunner {
         return patientRepository.save(patient);
     }
 
+    private Patient updateDemoPatient(Patient patient) {
+        patient.setName(PATIENT_NAME);
+        patient.setAssignedDoctorId(DOCTOR_USER_ID);
+        patient.setDeviceId(DEMO_DEVICE_ID);
+        patient.setStatus("ACTIVE");
+        patient.setUpdatedAt(Instant.now());
+        return patientRepository.save(patient);
+    }
+
     private void seedUsers(Patient patient) {
-        if (appUserRepository.findByUserId("patient1").isEmpty()) {
-            appUserRepository.save(AppUser.builder()
-                    .userId("patient1")
-                    .password("patient123")
-                    .name(patient.getName())
-                    .role("PATIENT")
-                    .patientId(patient.getId())
-                    .createdAt(Instant.now())
-                    .build());
+        upsertUser(PATIENT_USER_ID, LEGACY_PATIENT_USER_ID, PATIENT_PASSWORD,
+                patient.getName(), "PATIENT", patient.getId());
+        upsertUser(DOCTOR_USER_ID, LEGACY_DOCTOR_USER_ID, DOCTOR_PASSWORD,
+                DOCTOR_NAME, "DOCTOR", null);
+    }
+
+    private void upsertUser(
+            String userId,
+            String legacyUserId,
+            String password,
+            String name,
+            String role,
+            String patientId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .or(() -> appUserRepository.findByUserId(legacyUserId))
+                .orElseGet(() -> AppUser.builder()
+                        .createdAt(Instant.now())
+                        .build());
+
+        if (user.getCreatedAt() == null) {
+            user.setCreatedAt(Instant.now());
         }
 
-        if (appUserRepository.findByUserId("doctor1").isEmpty()) {
-            appUserRepository.save(AppUser.builder()
-                    .userId("doctor1")
-                    .password("doctor123")
-                    .name("Dr. Meera Patel")
-                    .role("DOCTOR")
-                    .createdAt(Instant.now())
-                    .build());
-        }
+        user.setUserId(userId);
+        user.setPassword(password);
+        user.setName(name);
+        user.setRole(role);
+        user.setPatientId(patientId);
+        appUserRepository.save(user);
     }
 
     private void seedReadings(String patientId) {
@@ -141,14 +169,23 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedConsultation(String patientId) {
-        if (!consultationRepository.findByPatientIdOrderByConsultationTimeDesc(patientId).isEmpty()) {
+        List<Consultation> consultations = consultationRepository.findByPatientIdOrderByConsultationTimeDesc(patientId);
+        if (!consultations.isEmpty()) {
+            consultations.forEach(consultation -> {
+                if (LEGACY_DOCTOR_USER_ID.equals(consultation.getDoctorId())
+                        || DOCTOR_USER_ID.equals(consultation.getDoctorId())) {
+                    consultation.setDoctorId(DOCTOR_USER_ID);
+                    consultation.setDoctorName(DOCTOR_NAME);
+                }
+            });
+            consultationRepository.saveAll(consultations);
             return;
         }
 
         consultationRepository.save(Consultation.builder()
                 .patientId(patientId)
-                .doctorId("doctor1")
-                .doctorName("Dr. Meera Patel")
+                .doctorId(DOCTOR_USER_ID)
+                .doctorName(DOCTOR_NAME)
                 .consultationTime(Instant.now().minus(Duration.ofDays(1)))
                 .suggestions("Continue regular monitoring, drink enough water, and report if breathlessness or fever appears.")
                 .createdAt(Instant.now())

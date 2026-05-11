@@ -28,6 +28,7 @@ class HealthAiServiceTests {
         HealthAiResult fall = service.analyze(3.10, -1.30, 0.70, 124, 93, 37.1);
 
         assertFalse(normal.fallDetected());
+        assertTrue(fall.fallDetected());
         assertTrue(fall.fallProbability() > normal.fallProbability());
     }
 }
