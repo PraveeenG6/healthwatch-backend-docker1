@@ -113,6 +113,13 @@ public class DataInitializer implements CommandLineRunner {
         user.setRole(role);
         user.setPatientId(patientId);
         appUserRepository.save(user);
+        deleteLegacyUserIfPresent(userId, legacyUserId);
+    }
+
+    private void deleteLegacyUserIfPresent(String userId, String legacyUserId) {
+        appUserRepository.findByUserId(legacyUserId)
+                .filter(legacyUser -> !userId.equals(legacyUser.getUserId()))
+                .ifPresent(appUserRepository::delete);
     }
 
     private void seedReadings(String patientId) {
