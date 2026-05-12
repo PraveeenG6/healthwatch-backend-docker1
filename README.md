@@ -282,9 +282,11 @@ Deploy the `healthmonitor` folder as the Railway service root. The project inclu
 Set these Railway variables:
 
 ```text
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=${{ MongoDB.MONGO_URL }}
 GEMINI_API_KEY=your_gemini_key_optional
 ```
+
+The backend also accepts `MONGO_URL`, which is the variable name Railway exposes on its MongoDB service. If your backend and MongoDB are separate Railway services, add a reference variable on the backend service so it can see the database URL.
 
 Railway provides `PORT` automatically, and `application.properties` reads it with `server.port=${PORT:8081}`.
 
@@ -304,10 +306,10 @@ Expected response:
 
 Deploy the `frontend` folder as the Vercel project root. It is a static HTML/CSS/JS site and includes `vercel.json`.
 
-After Railway gives you a public backend URL, open the Vercel site once with:
+After Railway gives you a public backend URL, put it in `frontend/js/config.js`:
 
-```text
-https://your-vercel-domain?api=https://your-railway-domain
+```js
+const BACKEND_API_BASE_URL = 'https://your-railway-domain';
 ```
 
-The frontend stores that backend URL in browser local storage. If you need to change it later, open the same Vercel URL again with a new `?api=...` value.
+Do not add a trailing slash. Redeploy the frontend after changing this value.
