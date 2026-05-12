@@ -74,6 +74,7 @@ public class HealthService {
                 .temperature(request.getTemperature())
                 .heartRate(request.getHeartRate())
                 .spo2(request.getSpo2())
+                .stepCount(request.getStepCount())
                 .fallDetected(fallDetected)
                 .fallProbability(aiResult.fallProbability())
                 .fallAlert(fallDetected)

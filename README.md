@@ -94,11 +94,12 @@ Request:
   "temperature": 37.2,
   "heartRate": 86,
   "spo2": 98,
+  "stepCount": 1200,
   "timestamp": "2026-05-08T10:30:00Z"
 }
 ```
 
-`timestamp` may also be sent as epoch seconds or epoch milliseconds. Fall detection is predicted by the backend DL4J model from accelerometer values; the ESP32 no longer needs to send a `fallDetected` flag.
+`xAccel`, `yAccel`, and `zAccel` may also be sent as `xacc`, `yacc`, and `zacc`. `stepCount` may also be sent as `steps`. `timestamp` may also be sent as epoch seconds or epoch milliseconds. Fall detection is predicted by the backend DL4J model from accelerometer values; the ESP32 no longer needs to send a `fallDetected` flag.
 
 Response:
 
@@ -212,7 +213,7 @@ The bundled CSV contains 300+ labelled demo rows so the project runs out of the 
 Set your API key before starting Spring Boot. For local development, create `healthmonitor/.env`:
 
 ```text
-MONGODB_URI=mongodb://localhost:27017/HealthWatch
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/HealthWatch?retryWrites=true&w=majority
 GEMINI_API_KEY=your_api_key_here
 ```
 
@@ -282,11 +283,11 @@ Deploy the `healthmonitor` folder as the Railway service root. The project inclu
 Set these Railway variables:
 
 ```text
-MONGODB_URI=${{ MongoDB.MONGO_URL }}
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/HealthWatch?retryWrites=true&w=majority
 GEMINI_API_KEY=your_gemini_key_optional
 ```
 
-The backend also accepts `MONGO_URL`, which is the variable name Railway exposes on its MongoDB service. If your backend and MongoDB are separate Railway services, add a reference variable on the backend service so it can see the database URL.
+Use your MongoDB Atlas connection string for `MONGODB_URI`. In Atlas, make sure Network Access allows Railway to connect. For simple project deployment, add `0.0.0.0/0` to Atlas Network Access.
 
 Railway provides `PORT` automatically, and `application.properties` reads it with `server.port=${PORT:8081}`.
 

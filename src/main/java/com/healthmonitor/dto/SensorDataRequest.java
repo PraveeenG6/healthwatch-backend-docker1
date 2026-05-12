@@ -1,6 +1,7 @@
 package com.healthmonitor.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -14,20 +15,28 @@ public class SensorDataRequest {
     @NotBlank(message = "deviceId is required")
     private String deviceId;
 
+    @JsonProperty("xAccel")
     @JsonAlias({"xacc", "x_accel", "x"})
     @DecimalMin(value = "-100.0", message = "xAccel out of range")
     @DecimalMax(value = "100.0", message = "xAccel out of range")
     private double xAccel;
 
+    @JsonProperty("yAccel")
     @JsonAlias({"yacc", "y_accel", "y"})
     @DecimalMin(value = "-100.0", message = "yAccel out of range")
     @DecimalMax(value = "100.0", message = "yAccel out of range")
     private double yAccel;
 
+    @JsonProperty("zAccel")
     @JsonAlias({"zacc", "z_accel", "z"})
     @DecimalMin(value = "-100.0", message = "zAccel out of range")
     @DecimalMax(value = "100.0", message = "zAccel out of range")
     private double zAccel;
+
+    @JsonProperty("stepCount")
+    @JsonAlias({"steps", "step_count", "stepcount"})
+    @DecimalMin(value = "0.0")
+    private long stepCount;
 
     @JsonAlias("temp")
     @DecimalMin(value = "30.0", message = "Temperature too low to be valid")
